@@ -17,13 +17,14 @@ import static org.junit.Assert.*;
  * @author drygaay
  */
 public class TextSubstitutionTest {
-
-    public TextSubstitutionTest() {
-    }
+    
     ArrayList< SubstitutionRule> rules = new ArrayList<>();
     SubstitutionRule hRule = new HourRule();
     SubstitutionRule greekRule = new GreekRule();
-
+    
+    public TextSubstitutionTest() {
+    }
+    
     @Before
     public void setUp() {
     }
@@ -33,11 +34,21 @@ public class TextSubstitutionTest {
         rules.clear();
     }
 
-    @Test
-    public void noRules() {
+    @Test(expected=NullPointerException.class)
+    public void noRulesThrow() {
         TextSubstitution formatter = new TextSubstitution("blast", null);
+     }
+    
+       @Test
+    public void noRulesNoThrow() {
+        TextSubstitution formatter = new TextSubstitution(
+                "blast", new ArrayList< SubstitutionRule > ());
         final String formatted = "blast";
         assertTrue(formatter.getText().equals(formatted));
+        for (Substitution s: formatter) {
+            assertFalse(s.isSubstitution());
+            assertEquals(s.getOriginal(), s.getSubstitute());
+        }
     }
 
     @Test
@@ -46,14 +57,33 @@ public class TextSubstitutionTest {
         TextSubstitution formatter = new TextSubstitution("blast for 6 hours", rules);
         final String formatted = "blast for 6 hours";
         assertTrue(formatter.getText().equals(formatted));
+        for (Substitution s: formatter) {
+            assertFalse(s.isSubstitution());
+            assertEquals(s.getOriginal(), s.getSubstitute());
+        }
     }
 
     @Test
     public void hRule() {
         rules.add(hRule);
-        TextSubstitution formatter = new TextSubstitution("blast for 6 h", rules);
-        final String formatted = "blast for 6 hr";
+        TextSubstitution formatter = new TextSubstitution("blast for 6 h.", rules);
+        final String formatted = "blast for 6 hr.";
         assertTrue(formatter.getText().equals(formatted));
+        int nTextChunks = 1;
+        for (Substitution s: formatter) {
+            if (nTextChunks == 1) {   
+                // no substitution
+                assertFalse(s.isSubstitution());
+                assertEquals(s.getOriginal(), s.getSubstitute());       
+            } else if (nTextChunks == 2) {
+                // h -> hr
+                assertTrue(s.isSubstitution());
+                assertEquals(s.getOriginal(), "h");
+                assertEquals(s.getSubstitute(), "hr");
+            }
+            nTextChunks++;
+        }
+        assertEquals(nTextChunks, 4); // 3 text chunks 
     }
 
     @Test
@@ -63,6 +93,16 @@ public class TextSubstitutionTest {
                 new TextSubstitution("blast for 6 h and then for 3 h and", rules);
         final String formatted = "blast for 6 hr and then for 3 hr and";
         assertTrue(formatter.getText().equals(formatted));
+        int nTextChunks = 0;
+        int nTextSubs = 0;
+        for (Substitution s: formatter) {
+            if (s.isSubstitution()) { 
+                nTextSubs++;
+            }  
+             nTextChunks++;
+        }
+        assertEquals(nTextChunks, 5);
+        assertEquals(nTextSubs, 2);
     }
 
     @Test
@@ -72,6 +112,21 @@ public class TextSubstitutionTest {
                 new TextSubstitution("\u03B1 and whatever", rules);
         final String formatted = "alpha and whatever";
         assertTrue(formatter.getText().equals(formatted));
+        int nTextChunks = 1;
+        for (Substitution s: formatter) {
+            if (nTextChunks == 1) { 
+                // unicode  -> alpha
+                assertTrue(s.isSubstitution());
+                assertEquals(s.getOriginal(), "\u03B1");
+                assertEquals(s.getSubstitute(), "alpha");            
+            } else if (nTextChunks == 2) {
+                // no substitution
+                assertFalse(s.isSubstitution());
+                assertEquals(s.getOriginal(), s.getSubstitute());
+            }
+            nTextChunks++;
+        }
+        assertEquals(nTextChunks, 3); // 2 text chunks 
     }
 
     @Test
@@ -81,6 +136,16 @@ public class TextSubstitutionTest {
         TextSubstitution formatter  = new TextSubstitution(greekAlphabet, rules);
         final String formatted = "alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega";
         assertTrue(formatter.getText().equals(formatted));
+        int nTextChunks = 0;
+        int nTextSubs = 0;
+        for (Substitution s: formatter) {
+            if (s.isSubstitution()) { 
+                nTextSubs++;
+            }  
+             nTextChunks++;
+        }
+        assertEquals(nTextChunks, 24);
+        assertEquals(nTextSubs, 24);
     }
 
     // TODO: check symbols                                                       
@@ -91,5 +156,15 @@ public class TextSubstitutionTest {
         TextSubstitution formatter = new TextSubstitution(greekAlphabet, rules);
         final String formatted = "alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega";
         assertTrue(formatter.getText().equals(formatted));
+        int nTextChunks = 0;
+        int nTextSubs = 0;
+        for (Substitution s: formatter) {
+            if (s.isSubstitution()) { 
+                nTextSubs++;
+            }  
+             nTextChunks++;
+        }
+        assertEquals(nTextChunks, 24);
+        assertEquals(nTextSubs, 24);
     }
 }

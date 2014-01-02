@@ -4,12 +4,14 @@
  */
 package substitution;
 
+import java.util.Iterator;
+
 /**
  * all greek letters (small and caps) changed to latin and spelled out
  * @author drygaay
  */
 public class GreekRule extends SubstitutionRule{
-    public Substitution substutute(String text) {
-        return null;
+    public void substitute(String text) {
     }
-}
+
+ }
