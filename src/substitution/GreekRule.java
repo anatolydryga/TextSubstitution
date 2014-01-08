@@ -1,12 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package substitution;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -81,8 +75,8 @@ public class GreekRule extends SubstitutionRule {
         greekLetters.put('\u03A9', "omega");
     }
 
+    @Override
     public void substitute(String original) {
-
         int start = 0; /// start of the string without the match
         for (int i = 0; i < original.length(); i++) {
             Character curChar = original.charAt(i);
