@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- *
+ * for a given rule parse text and make it available as Substitution objects
  * @author drygaay
  */
 abstract class SubstitutionRule implements Iterable< Substitution > {
@@ -21,10 +21,12 @@ abstract class SubstitutionRule implements Iterable< Substitution > {
     
     /**
      * parse given text string into list of Substitution(s)
-     * 
+     *  
      * @param text 
+     * @return true if rules were applied, false otherwise
+     * 
      */
-    public abstract void substitute(String text);
+    public abstract boolean substitute(String text);
     
        @Override
     public Iterator<Substitution> iterator() {
