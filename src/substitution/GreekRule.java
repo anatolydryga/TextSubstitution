@@ -76,11 +76,13 @@ public class GreekRule extends SubstitutionRule {
     }
 
     @Override
-    public void substitute(String original) {
+    public boolean substitute(String original) {
+        boolean foundSubstitution  = false;
         int start = 0; /// start of the string without the match
         for (int i = 0; i < original.length(); i++) {
             Character curChar = original.charAt(i);
             if (greekLetters.containsKey(curChar)) {
+                foundSubstitution = true;
                 String before = original.substring(start, i);
                 if ( ! before.isEmpty()) {
                     text.add(new Substitution(before, before));
@@ -90,5 +92,6 @@ public class GreekRule extends SubstitutionRule {
             }
         }
         text.add(new Substitution(original.substring(start), original.substring(start)));
+        return foundSubstitution;
     }
 }
