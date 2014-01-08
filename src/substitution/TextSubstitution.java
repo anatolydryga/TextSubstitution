@@ -7,19 +7,23 @@ import java.util.Iterator;
  * transform original text to text with substitutions according to rules.
  *
  * @author drygaay
+ * 
+ * @wa apply rules only on the original string
  */
 public class TextSubstitution implements Iterable< Substitution> {
 
     private final String original;
     private final ArrayList< SubstitutionRule> rules;
-    private ArrayList< Substitution> text = new ArrayList< Substitution>();
+    private ArrayList< Substitution> text = new ArrayList<>();
 
     /**
      * 
      * @param original
      * @param rules 
+     * @throws UnsupportedOperationException if two rules have
+     * substitutions on the same substring
      */
-    TextSubstitution(String original, ArrayList< SubstitutionRule> rules) {
+    TextSubstitution(String original, ArrayList<SubstitutionRule> rules) {
         if (rules == null) {
             throw new NullPointerException();
         }
@@ -29,19 +33,19 @@ public class TextSubstitution implements Iterable< Substitution> {
     }
 
     private void substitute() {
-        ArrayList< Substitution> textAcc = new ArrayList< Substitution>();
+        ArrayList< Substitution> textAcc = new ArrayList<>();
         text.add(new Substitution(original, original));
+        
         for (SubstitutionRule rule : rules) {
             for (Substitution s : text) {
+                if (s.isSubstitution() && rule.substitute(s.getSubstitute())) {
+                    throw new UnsupportedOperationException(
+                            "cannot have several rules that modify the same part of the string");
+                }
                 rule.substitute(s.getOriginal());
                 for (Substitution sForRule: rule) {
                     textAcc.add(sForRule);
-                    //                if (s.isSubstitution()) {
-                    //
-                    //                } else {
-                    //
-                    //                }
-                }
+                 }
             }
             text.clear();
             text.addAll(textAcc);
