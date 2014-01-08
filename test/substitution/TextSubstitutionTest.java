@@ -11,20 +11,24 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 /**
  *
  * @author drygaay
  */
 public class TextSubstitutionTest {
-    
+
     ArrayList< SubstitutionRule> rules = new ArrayList<>();
-    SubstitutionRule hRule = new HourRule();
+    SubstitutionRule hRule = new TextRule("h", "hr");
+    SubstitutionRule mlRule = new TextRule("Ml", "mL");
+    SubstitutionRule mkgRule = new TextRule("Microg", "ug");
+    SubstitutionRule mklRule = new TextRule("Microl", "uL");
     SubstitutionRule greekRule = new GreekRule();
-    
+
     public TextSubstitutionTest() {
     }
-    
+
     @Before
     public void setUp() {
     }
@@ -33,19 +37,28 @@ public class TextSubstitutionTest {
     public void tearDown() {
         rules.clear();
     }
+    
+    @Test(expected = UnsupportedOperationException.class)
+    public void overlappingRulesThrow() {
+        SubstitutionRule blastRule = new TextRule("blast", "BLAST");
+        SubstitutionRule blastRevRule = new TextRule("BLAST", "blast");
+        rules.add(blastRule);
+        rules.add(blastRevRule);
+        TextSubstitution formatter = new TextSubstitution("blast", rules);
+    }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected = NullPointerException.class)
     public void noRulesThrow() {
         TextSubstitution formatter = new TextSubstitution("blast", null);
-     }
-    
-       @Test
+    }
+
+    @Test
     public void noRulesNoThrow() {
         TextSubstitution formatter = new TextSubstitution(
-                "blast", new ArrayList< SubstitutionRule > ());
+                "blast", new ArrayList< SubstitutionRule>());
         final String formatted = "blast";
         assertTrue(formatter.getText().equals(formatted));
-        for (Substitution s: formatter) {
+        for (Substitution s : formatter) {
             assertFalse(s.isSubstitution());
             assertEquals(s.getOriginal(), s.getSubstitute());
         }
@@ -57,10 +70,50 @@ public class TextSubstitutionTest {
         TextSubstitution formatter = new TextSubstitution("blast for 6 hours", rules);
         final String formatted = "blast for 6 hours";
         assertTrue(formatter.getText().equals(formatted));
-        for (Substitution s: formatter) {
+        for (Substitution s : formatter) {
             assertFalse(s.isSubstitution());
             assertEquals(s.getOriginal(), s.getSubstitute());
         }
+    }
+
+    @Test
+    public void mlRule() {
+        rules.add(mlRule);
+        TextSubstitution formatter = new TextSubstitution("blast for 6 Ml.", rules);
+        final String formatted = "blast for 6 mL.";
+        assertTrue(formatter.getText().equals(formatted));
+    }
+    
+    @Test
+    public void mlRule_start() {
+        rules.add(mlRule);
+        TextSubstitution formatter = new TextSubstitution(" Ml.", rules);
+        final String formatted = " mL.";
+        assertTrue(formatter.getText().equals(formatted));
+    }
+    
+    @Test
+    public void mlRule_end() {
+        rules.add(mlRule);
+        TextSubstitution formatter = new TextSubstitution("   Ml.", rules);
+        final String formatted = "   mL.";
+        assertTrue(formatter.getText().equals(formatted));
+    }
+
+    @Test
+    public void mkgRule() {
+        rules.add(mkgRule);
+        TextSubstitution formatter = new TextSubstitution("Microg Microg Microg !fox", rules);
+        final String formatted = "ug ug ug !fox";
+        assertTrue(formatter.getText().equals(formatted));
+    }
+
+    @Test
+    public void mklRule() {
+        rules.add(mklRule);
+        TextSubstitution formatter = new TextSubstitution(" Microl Microl sdfs Microl Microl ", rules);
+        final String formatted = " uL uL sdfs uL uL ";
+        assertTrue(formatter.getText().equals(formatted));
     }
 
     @Test
@@ -70,11 +123,11 @@ public class TextSubstitutionTest {
         final String formatted = "blast for 6 hr.";
         assertTrue(formatter.getText().equals(formatted));
         int nTextChunks = 1;
-        for (Substitution s: formatter) {
-            if (nTextChunks == 1) {   
+        for (Substitution s : formatter) {
+            if (nTextChunks == 1) {
                 // no substitution
                 assertFalse(s.isSubstitution());
-                assertEquals(s.getOriginal(), s.getSubstitute());       
+                assertEquals(s.getOriginal(), s.getSubstitute());
             } else if (nTextChunks == 2) {
                 // h -> hr
                 assertTrue(s.isSubstitution());
@@ -95,11 +148,11 @@ public class TextSubstitutionTest {
         assertTrue(formatter.getText().equals(formatted));
         int nTextChunks = 0;
         int nTextSubs = 0;
-        for (Substitution s: formatter) {
-            if (s.isSubstitution()) { 
+        for (Substitution s : formatter) {
+            if (s.isSubstitution()) {
                 nTextSubs++;
-            }  
-             nTextChunks++;
+            }
+            nTextChunks++;
         }
         assertEquals(nTextChunks, 5);
         assertEquals(nTextSubs, 2);
@@ -113,12 +166,12 @@ public class TextSubstitutionTest {
         final String formatted = "alpha and whatever";
         assertTrue(formatter.getText().equals(formatted));
         int nTextChunks = 1;
-        for (Substitution s: formatter) {
-            if (nTextChunks == 1) { 
+        for (Substitution s : formatter) {
+            if (nTextChunks == 1) {
                 // unicode  -> alpha
                 assertTrue(s.isSubstitution());
                 assertEquals(s.getOriginal(), "\u03B1");
-                assertEquals(s.getSubstitute(), "alpha");            
+                assertEquals(s.getSubstitute(), "alpha");
             } else if (nTextChunks == 2) {
                 // no substitution
                 assertFalse(s.isSubstitution());
@@ -133,38 +186,39 @@ public class TextSubstitutionTest {
     public void greekAlphabet() {
         rules.add(greekRule);
         String greekAlphabet = "\u03b1 \u03b2 \u03b3 \u03b4 \u03b5 \u03b6 \u03b7 \u03b8 \u03b9 \u03ba \u03bb \u03bc \u03bd \u03be \u03bf \u03c0 \u03c1 \u03c3 \u03c2 \u03c4 \u03c5 \u03c6 \u03c7 \u03c8 \u03c9";
-        TextSubstitution formatter  = new TextSubstitution(greekAlphabet, rules);
-        final String formatted = "alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega";
+        TextSubstitution formatter = new TextSubstitution(greekAlphabet, rules);
+
+        final String formatted = "alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho sigma sigma tau upsilon phi chi psi omega";
         assertTrue(formatter.getText().equals(formatted));
+
         int nTextChunks = 0;
         int nTextSubs = 0;
-        for (Substitution s: formatter) {
-            if (s.isSubstitution()) { 
+        for (Substitution s : formatter) {
+            if (s.isSubstitution()) {
                 nTextSubs++;
-            }  
-             nTextChunks++;
+            }
+            nTextChunks++;
         }
-        assertEquals(nTextChunks, 24);
-        assertEquals(nTextSubs, 24);
+        assertEquals(nTextChunks, 50);
+        assertEquals(nTextSubs, 25);
     }
 
-    // TODO: check symbols                                                       
     @Test
     public void greekAlphabetCAPS() {
         rules.add(greekRule);
         String greekAlphabet = "\u0391 \u0392 \u0393 \u0394 \u0395 \u0396 \u0397 \u0398 \u0399 \u039A \u039B \u039C \u039D \u039E \u039F \u03A0 \u03A1 \u03A2 \u03A3 \u03A4 \u03A5 \u03A6 \u03A7 \u03A8 \u03A9";
         TextSubstitution formatter = new TextSubstitution(greekAlphabet, rules);
-        final String formatted = "alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho sigma tau upsilon phi chi psi omega";
+        final String formatted = "alpha beta gamma delta epsilon zeta eta theta iota kappa lamda mu nu xi omicron pi rho sigma sigma tau upsilon phi chi psi omega";
         assertTrue(formatter.getText().equals(formatted));
         int nTextChunks = 0;
         int nTextSubs = 0;
-        for (Substitution s: formatter) {
-            if (s.isSubstitution()) { 
+        for (Substitution s : formatter) {
+            if (s.isSubstitution()) {
                 nTextSubs++;
-            }  
-             nTextChunks++;
+            }
+            nTextChunks++;
         }
-        assertEquals(nTextChunks, 24);
-        assertEquals(nTextSubs, 24);
+        assertEquals(nTextChunks, 50);
+        assertEquals(nTextSubs, 25);
     }
 }
