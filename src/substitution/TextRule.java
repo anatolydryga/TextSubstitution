@@ -25,10 +25,12 @@ public class TextRule extends SubstitutionRule {
     
        
     @Override
-    public void substitute(String original) { 
+    public boolean substitute(String original) {
+        boolean foundSubstitution = false;
         Matcher matcher = pattern.matcher(original);
         int start = 0; /// start of the string without the match
         while (matcher.find()) {
+            foundSubstitution = true;
             String before = original.substring(start, matcher.start());
             if ( ! before.isEmpty()) {
                 text.add(new Substitution(before, before));
@@ -37,5 +39,6 @@ public class TextRule extends SubstitutionRule {
             start = matcher.end();          
         }
         text.add(new Substitution(original.substring(start), original.substring(start)));
+        return foundSubstitution;
     }
  }
