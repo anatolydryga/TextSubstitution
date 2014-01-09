@@ -5,7 +5,7 @@ package substitution;
  *
  * @author drygaay
  */
-class Substitution {
+public class Substitution {
 
     private final String original;
     private final String substitute;
