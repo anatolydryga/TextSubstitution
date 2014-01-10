@@ -11,9 +11,9 @@ import java.util.Iterator;
  * for a given rule parse text and make it available as Substitution objects
  * @author drygaay
  */
-abstract class SubstitutionRule implements Iterable< Substitution > {
+public abstract class SubstitutionRule implements Iterable< Substitution > {
     
-    protected ArrayList< Substitution > text;
+    protected ArrayList<Substitution> text;
 
     SubstitutionRule() {
         this.text = new ArrayList<>();
@@ -22,11 +22,12 @@ abstract class SubstitutionRule implements Iterable< Substitution > {
     /**
      * parse given text string into list of Substitution(s)
      *  
-     * @param text 
+     * @param originalText 
      * @return true if rules were applied, false otherwise
      * 
+     * @wa ArrayList of Substitution (text) should be cleared before each invocation 
      */
-    public abstract boolean substitute(String text);
+    public abstract boolean substitute(String originalText);
     
        @Override
     public Iterator<Substitution> iterator() {
