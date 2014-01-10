@@ -11,7 +11,7 @@ public class Substitution {
     private final String substitute;
     private final boolean isSubstitution;
 
-    Substitution(String original, String substitute) {
+    public Substitution(String original, String substitute) {
         if (original.equals(substitute)) {
             this.isSubstitution = false;
         } else {
