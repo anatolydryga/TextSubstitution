@@ -1,43 +1,22 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package substitution;
 
 import java.util.ArrayList;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Ignore;
 
-/**
- *
- * @author drygaay
- */
 public class TextSubstitutionTest {
 
-    ArrayList< SubstitutionRule> rules = new ArrayList<>();
+    ArrayList<SubstitutionRule> rules = new ArrayList<>();
     SubstitutionRule hRule = new TextRule("h", "hr");
     SubstitutionRule mlRule = new TextRule("Ml", "mL");
     SubstitutionRule mkgRule = new TextRule("Microg", "ug");
     SubstitutionRule mklRule = new TextRule("Microl", "uL");
     SubstitutionRule greekRule = new GreekRule();
+    SubstitutionRule microRule = new MicroRule();
 
-    public TextSubstitutionTest() {
-    }
 
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-        rules.clear();
-    }
-    
     @Test(expected = UnsupportedOperationException.class)
     public void overlappingRulesThrow() {
         SubstitutionRule blastRule = new TextRule("blast", "BLAST");
@@ -82,28 +61,21 @@ public class TextSubstitutionTest {
         TextSubstitution formatter = new TextSubstitution("blast for 6 Ml.", rules);
         final String formatted = "blast for 6 mL.";
         assertTrue(formatter.getText().equals(formatted));
-    }
-    
-    @Test
-    public void mlRule_start() {
-        rules.add(mlRule);
-        TextSubstitution formatter = new TextSubstitution(" Ml.", rules);
-        final String formatted = " mL.";
-        assertTrue(formatter.getText().equals(formatted));
-    }
-    
-    @Test
-    public void mlRule_end() {
-        rules.add(mlRule);
-        TextSubstitution formatter = new TextSubstitution("   Ml.", rules);
-        final String formatted = "   mL.";
-        assertTrue(formatter.getText().equals(formatted));
+
+        TextSubstitution formatterEnd = new TextSubstitution(" Ml.", rules);
+        final String formatted2 = " mL.";
+        assertTrue(formatterEnd.getText().equals(formatted2));
+
+        TextSubstitution formatterStart = new TextSubstitution("Ml.", rules);
+        final String formatted3 = "mL.";
+        assertTrue(formatterStart.getText().equals(formatted3));
     }
 
     @Test
     public void mkgRule() {
         rules.add(mkgRule);
-        TextSubstitution formatter = new TextSubstitution("Microg Microg Microg !fox", rules);
+        TextSubstitution formatter = new 
+                TextSubstitution("Microg Microg Microg !fox", rules);
         final String formatted = "ug ug ug !fox";
         assertTrue(formatter.getText().equals(formatted));
     }
@@ -111,9 +83,24 @@ public class TextSubstitutionTest {
     @Test
     public void mklRule() {
         rules.add(mklRule);
-        TextSubstitution formatter = new TextSubstitution(" Microl Microl sdfs Microl Microl ", rules);
+        TextSubstitution formatter = new 
+                TextSubstitution(" Microl Microl sdfs Microl Microl ", rules);
         final String formatted = " uL uL sdfs uL uL ";
         assertTrue(formatter.getText().equals(formatted));
+    }
+
+    @Test
+    public void severalRulesTest() {
+        rules.add(mklRule);
+        rules.add(hRule);
+        rules.add(greekRule);
+        rules.add(microRule);
+        String original = "\u03BCM and h and Microl whatever";
+        TextSubstitution formatter =
+                new TextSubstitution(original, rules);
+        final String expected = "uM and hr and uL whatever";
+        String result = formatter.getText();
+        assertTrue(result.equals(expected));
     }
 
     @Test
@@ -124,16 +111,6 @@ public class TextSubstitutionTest {
         assertTrue(formatter.getText().equals(formatted));
         int nTextChunks = 1;
         for (Substitution s : formatter) {
-            if (nTextChunks == 1) {
-                // no substitution
-                assertFalse(s.isSubstitution());
-                assertEquals(s.getOriginal(), s.getSubstitute());
-            } else if (nTextChunks == 2) {
-                // h -> hr
-                assertTrue(s.isSubstitution());
-                assertEquals(s.getOriginal(), "h");
-                assertEquals(s.getSubstitute(), "hr");
-            }
             nTextChunks++;
         }
         assertEquals(nTextChunks, 4); // 3 text chunks 
@@ -167,24 +144,54 @@ public class TextSubstitutionTest {
         assertTrue(formatter.getText().equals(formatted));
         int nTextChunks = 1;
         for (Substitution s : formatter) {
-            if (nTextChunks == 1) {
-                // unicode  -> alpha
-                assertTrue(s.isSubstitution());
-                assertEquals(s.getOriginal(), "\u03B1");
-                assertEquals(s.getSubstitute(), "alpha");
-            } else if (nTextChunks == 2) {
-                // no substitution
-                assertFalse(s.isSubstitution());
-                assertEquals(s.getOriginal(), s.getSubstitute());
-            }
             nTextChunks++;
         }
         assertEquals(nTextChunks, 3); // 2 text chunks 
     }
 
     @Test
+    public void microMTest() {
+        rules.add(greekRule);
+        rules.add(microRule);
+        String original = "\u03BCM and whatever";
+        TextSubstitution formatter =
+                new TextSubstitution(original, rules);
+        final String expected = "uM and whatever";
+        String result = formatter.getText();
+        assertTrue(result.equals(expected));
+    }
+
+    @Test
+    public void microMfromAbstractTest() {
+        rules.add(greekRule);
+        String original = 
+                "(GI(50) = 15.6 µM) is twice more toxic " +
+                "than nano-curcumin (GI(50) = 32.5 µM), nano-curcumin.";
+        TextSubstitution formatter =
+                new TextSubstitution(original, rules);
+        final String expected = 
+                "(GI(50) = 15.6 uM) is twice more toxic " +
+                "than nano-curcumin (GI(50) = 32.5 uM), nano-curcumin.";
+        String result = formatter.getText();
+        assertTrue(result.equals(expected));
+    }
+
+    @Test
+    public void muMfromAbstractTest() {
+        rules.add(greekRule);
+        rules.add(microRule);
+        String original = "to 100 μM";
+        TextSubstitution formatter =
+                new TextSubstitution(original, rules);
+        final String expected = "to 100 uM";
+        String result = formatter.getText();
+        assertTrue(result.equals(expected));
+    }
+
+    @Test
     public void greekAlphabet() {
         rules.add(greekRule);
+        rules.add(microRule);
         String greekAlphabet = "\u03b1 \u03b2 \u03b3 \u03b4 \u03b5 \u03b6 \u03b7 \u03b8 \u03b9 \u03ba \u03bb \u03bc \u03bd \u03be \u03bf \u03c0 \u03c1 \u03c3 \u03c2 \u03c4 \u03c5 \u03c6 \u03c7 \u03c8 \u03c9";
         TextSubstitution formatter = new TextSubstitution(greekAlphabet, rules);
 
@@ -220,5 +227,28 @@ public class TextSubstitutionTest {
         }
         assertEquals(nTextChunks, 50);
         assertEquals(nTextSubs, 25);
+    }
+
+    @Test
+    public void allRulesAtOnce() {
+        rules.add(hRule);
+        rules.add(mlRule);
+        rules.add(mkgRule);
+        rules.add(mklRule);
+        rules.add(greekRule);
+
+        String random = "here we don't have any substitutions at all.";
+        TextSubstitution formatter = new TextSubstitution(random, rules);
+        assertTrue(formatter.getText().equals(random));
+        int nTextChunks = 0;
+        int nTextSubs = 0;
+        for (Substitution s : formatter) {
+            if (s.isSubstitution()) {
+                nTextSubs++;
+            }
+            nTextChunks++;
+        }
+        assertEquals(nTextChunks, 1);
+        assertEquals(nTextSubs, 0);
     }
 }
