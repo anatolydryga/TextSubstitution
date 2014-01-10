@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package substitution;
 
 import java.util.regex.Matcher;
@@ -22,10 +18,10 @@ public class TextRule extends SubstitutionRule {
         this.from = from;
         this.to = to;
     }
-    
        
     @Override
     public boolean substitute(String original) {
+        text.clear();
         boolean foundSubstitution = false;
         Matcher matcher = pattern.matcher(original);
         int start = 0; /// start of the string without the match
