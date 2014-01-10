@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * all greek letters (small and caps) changed to latin and spelled out
+ * all Greek letters (small and caps) and prefix micro changed to Latin and spelled out
+ * @wa small letter mu is not covered by this rule 
+ * @sa MicroMuRule.java
+ * @wa prefix micro translated to u
  *
  * @author drygaay
  */
@@ -13,6 +16,7 @@ public class GreekRule extends SubstitutionRule {
     static final Map<Character, String> greekLetters = new HashMap<>();
 
     static {
+        // low and micro
         greekLetters.put('\u03B1', "alpha");
         greekLetters.put('\u03B2', "beta");
         greekLetters.put('\u03B3', "gamma");
@@ -26,7 +30,11 @@ public class GreekRule extends SubstitutionRule {
         greekLetters.put('\u03BA', "kappa");
 
         greekLetters.put('\u03BB', "lamda");
-        greekLetters.put('\u03BC', "mu");
+
+        // although not really letter of the greek alphabet for
+        // historical reasons appear similar to greek mu
+        greekLetters.put('\u00B5', "u");
+
         greekLetters.put('\u03BD', "nu");
         greekLetters.put('\u03BE', "xi");
         greekLetters.put('\u03BF', "omicron");
@@ -77,6 +85,7 @@ public class GreekRule extends SubstitutionRule {
 
     @Override
     public boolean substitute(String original) {
+        text.clear();
         boolean foundSubstitution  = false;
         int start = 0; /// start of the string without the match
         for (int i = 0; i < original.length(); i++) {
