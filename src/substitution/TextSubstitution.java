@@ -9,7 +9,7 @@ import java.util.Iterator;
  * @author drygaay
  * @wa apply rules only on the original string
  */
-public class TextSubstitution implements Iterable< Substitution> {
+public class TextSubstitution implements Iterable<Substitution> {
 
     private final String original;
     private final ArrayList< SubstitutionRule> rules;
